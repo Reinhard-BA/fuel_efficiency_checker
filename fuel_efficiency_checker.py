@@ -3,16 +3,18 @@ import sys # for sys.exit()
 
 class Vehicle:
     '''Models a Vehicle'''
-    def __init__(self, brand, model, year):
+    def __init__(self, brand, model, year, dataset=None):
         self.brand = brand
         self.model = model
         self.year = year
         self.mpg = None
         self.matches = []  # store multiple matching trims
+        self.dataset = dataset if dataset is not None else vehicle_data
+        # The 'self.dataset line' helps the test file to use assigned data to run independent of the vehicle_data from the csv file. 
 
     def get_mpg(self):
         '''Finds matching vehicles and their mpg'''        
-        for data in vehicle_data:
+        for data in self.dataset:
             if (self.brand == data['brand'] and self.year == data['year'] and self.model in data['model']):  # allow partial match
                 self.matches.append({ "model": data['model'],"mpg": float(data['combined_mpg'])})
         if self.matches:
@@ -61,59 +63,60 @@ except FileNotFoundError:
     sys.exit(1) # exit with status code 1 (error)
 
 # __User Interaction__
-while True:            
-    try:
-        brand = input('Enter the vehicle brand here: -> ').strip().lower()
-        model = input('Enter vehicle model here: -> ').strip().lower()
-        year = int(input('Enter year here: -> '))
+if __name__ == '__main__': # Only run this block if this file is executed directly, not when it’s imported.
+    while True:            
+        try:
+            brand = input('Enter the vehicle brand here: -> ').strip().lower()
+            model = input('Enter vehicle model here: -> ').strip().lower()
+            year = int(input('Enter year here: -> '))
 
-        car = Vehicle(brand, model, year)
-        matches = car.get_mpg()
+            car = Vehicle(brand, model, year)
+            matches = car.get_mpg()
 
-        if matches:
-            print("\nMultiple matches found:")
-            for i, m in enumerate(matches, start=1):
-                print(f"{i}. {year} {brand.title()} {m['model'].title()}")
+            if matches:
+                print("\nMultiple matches found:")
+                for i, m in enumerate(matches, start=1):
+                    print(f"{i}. {year} {brand.title()} {m['model'].title()}")
 
-            # Let user pick
-            choice = int(input("\nSelect the trim number you want: -> "))
-            if 1 <= choice <= len(matches):
-                selected = matches[choice - 1]
-                fuel_eff = selected["mpg"]
+                # Let user pick
+                choice = int(input("\nSelect the trim number you want: -> "))
+                if 1 <= choice <= len(matches):
+                    selected = matches[choice - 1]
+                    fuel_eff = selected["mpg"]
 
-                fuel_eff_kmpl_UK = car.mpg_to_kmpl_UK(fuel_eff)
-                fuel_eff_kmpl_US = car.mpg_to_kmpl_US(fuel_eff)
-                fuel_eff_l_per_100km = car.mpg_to_l_per_100km(fuel_eff)
+                    fuel_eff_kmpl_UK = car.mpg_to_kmpl_UK(fuel_eff)
+                    fuel_eff_kmpl_US = car.mpg_to_kmpl_US(fuel_eff)
+                    fuel_eff_l_per_100km = car.mpg_to_l_per_100km(fuel_eff)
 
-                print("\nYour vehicle's fuel efficiency:\n")
+                    print("\nYour vehicle's fuel efficiency:\n")
 
-                # Table header
-                print("--------------------------------------------------------------")
-                print(f"{'Metric':^15} | {'Value':^15}")   # ^ = center alignment
-                print("--------------------------------------------------------------")
+                    # Table header
+                    print("--------------------------------------------------------------")
+                    print(f"{'Metric':^15} | {'Value':^15}")   # ^ = center alignment
+                    print("--------------------------------------------------------------")
 
-                # Table rows with units
-                print(f"{'Combined MPG':<15} | {fuel_eff:>10.2f} mpg")
-                print(f"{'km/l (UK)':<15}   | {fuel_eff_kmpl_UK:>10.2f} km/l")
-                print(f"{'km/l (US)':<15}   | {fuel_eff_kmpl_US:>10.2f} km/l")
-                print(f"{'L/100km':<15}     | {fuel_eff_l_per_100km:>10.2f} L/100km")
+                    # Table rows with units
+                    print(f"{'Combined MPG':<15} | {fuel_eff:>10.2f} mpg")
+                    print(f"{'km/l (UK)':<15}   | {fuel_eff_kmpl_UK:>10.2f} km/l")
+                    print(f"{'km/l (US)':<15}   | {fuel_eff_kmpl_US:>10.2f} km/l")
+                    print(f"{'L/100km':<15}     | {fuel_eff_l_per_100km:>10.2f} L/100km")
 
-                print("--------------------------------------------------------------")
+                    print("--------------------------------------------------------------")
+
+                else:
+                    print("\nInvalid selection.")
 
             else:
-                print("\nInvalid selection.")
+                print('\nSorry vehicle not found.')
 
+        except ValueError:
+            print("\nInvalid input. Please enter numbers where required.")
+
+        # Exit or continue     
+        prompt = input('\nWould you like to check another vehicle? (Yes/No): -> ').lower().strip()
+        if prompt == 'no':
+            break
+        elif prompt == 'yes':
+            continue
         else:
-            print('\nSorry vehicle not found.')
-
-    except ValueError:
-        print("\nInvalid input. Please enter numbers where required.")
-
-    # Exit or continue     
-    prompt = input('\nWould you like to check another vehicle? (Yes/No): -> ').lower().strip()
-    if prompt == 'no':
-        break
-    elif prompt == 'yes':
-        continue
-    else:
-        print('\nInvalid input.')
+            print('\nInvalid input.')
